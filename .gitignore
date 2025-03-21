@@ -1,0 +1,39 @@
+# Binary files
+*.exe
+*.out
+*.o
+*.a
+*.so
+*.dll
+
+# Go modules
+bin/
+pkg/
+vendor/
+
+# Cache & Temp files
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.DS_Store
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.iml
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Go build artifacts
+/build/
+dist/
+coverage.out
+
+# Dependencies
+go.sum

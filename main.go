@@ -1,16 +1,33 @@
 package main
 
 import (
-	"gofiber-app/database"
+	database "gofiber-app/config"
 	"gofiber-app/migrations"
 	"gofiber-app/models"
+	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
-func main() {
-    app := fiber.New()
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
+func main() {
+		_ = godotenv.Load()
+
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "3000" // Default port
+		}
+		
+    app := fiber.New()
+		
 		// Connect to DB
 		database.ConnectDB()
 
@@ -27,26 +44,26 @@ func main() {
     })
 
 		app.Post("/users", func(c *fiber.Ctx) error {
-			type CreateUserInput struct {
-					Name  string `json:"name"`
-					Email string `json:"email"`
-			}
-	
-			var input CreateUserInput
-	
-			if err := c.BodyParser(&input); err != nil {
-					return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
-			}
-	
-			user := models.User{
-					Name:  input.Name,
-					Email: input.Email,
-			}
-	
-			database.DB.Create(&user)
-	
-			return c.JSON(user)
-	})
+				type CreateUserInput struct {
+						Name  string `json:"name"`
+						Email string `json:"email"`
+				}
+		
+				var input CreateUserInput
+		
+				if err := c.BodyParser(&input); err != nil {
+						return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
+				}
+		
+				user := models.User{
+						Name:  input.Name,
+						Email: input.Email,
+				}
+		
+				database.DB.Create(&user)
+		
+				return c.JSON(user)
+		})
 	
 
 		app.Post("/user", func(c *fiber.Ctx) error {
@@ -67,7 +84,8 @@ func main() {
 			})
 		})
 
-    app.Listen(":3000")
+		log.Fatal(app.Listen(":" + port))
+		log.Println("Server running on port", port)
 
 	
 }
