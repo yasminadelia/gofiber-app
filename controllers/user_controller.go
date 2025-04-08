@@ -3,14 +3,15 @@ package controllers
 import (
 	database "gofiber-app/config"
 	"gofiber-app/models"
+	"gofiber-app/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func CreateUser(c *fiber.Ctx) error {
 	type CreateUserInput struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name  string `json:"name" validate:"required"`
+		Email string `json:"email" validate:"required,email" gorm:"unique"`
 		Age int `json:"age"`
 		Address string `json:"address"`
 	}
@@ -18,7 +19,11 @@ func CreateUser(c *fiber.Ctx) error {
 	var input CreateUserInput
 
 	if err := c.BodyParser(&input); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if err := utils.Validate.Struct(input); err != nil {
+		return c.Status(400).JSON(utils.FormatValidationError(err))
 	}
 
 	user := models.User{
@@ -29,9 +34,8 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Failed to add new user"})
+		return c.Status(400).JSON(utils.FormatValidationError(err))
 	}
-	// database.DB.Create(&user)
 
 	return c.JSON(user)
 	
@@ -65,7 +69,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	type UpdateUserInput struct {
-		Name  string `json:"name"`
+		Name  string `json:"name" `
     Email string `json:"email" gorm:"unique"`
 		Age int `json:"age"`
 		Address string `json:"address"`
@@ -73,10 +77,16 @@ func UpdateUser(c *fiber.Ctx) error {
 
 	var input UpdateUserInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	database.DB.Model(&user).Updates(input)
+	if err := utils.Validate.Struct(input); err != nil {
+		return c.Status(400).JSON(utils.FormatValidationError(err))
+	}
+
+	if err := database.DB.Model(&user).Updates(input).Error; err != nil {
+		return c.Status(400).JSON(utils.FormatValidationError(err))
+	}
 
 	return c.JSON(user)
 }
